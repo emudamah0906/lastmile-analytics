@@ -1,0 +1,36 @@
+# dbt_project.yml
+# ================
+# This is the main configuration file for your dbt project.
+# It tells dbt:
+#   - What your project is called
+#   - Where to find models, seeds, tests, etc.
+#   - How to materialize each layer (view vs table)
+
+name: 'lastmile_analytics'
+version: '1.0.0'
+
+profile: 'lastmile_analytics'
+
+# These configurations specify where dbt should look for different types of files
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+# Materialization strategy by layer:
+# - staging: VIEWS (lightweight, always up-to-date, no storage cost)
+# - intermediate: EPHEMERAL (CTEs inlined into downstream models, no table created)
+# - marts: TABLES (materialized for fast BI queries)
+models:
+  lastmile_analytics:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
+
+seeds:
+  lastmile_analytics:
+    +schema: raw

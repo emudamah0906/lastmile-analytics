@@ -1,0 +1,13 @@
+# profiles.yml
+# =============
+# Tells dbt HOW to connect to your data warehouse.
+# DuckDB is a local, in-process database — no server needed!
+# The database file (lastmile.duckdb) is created automatically.
+
+lastmile_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'lastmile.duckdb'
+      threads: 4

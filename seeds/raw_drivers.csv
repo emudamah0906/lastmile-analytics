@@ -1,0 +1,51 @@
+driver_id,driver_name,vehicle_type,hire_date,driver_status
+DRV-001,Scott Smith,gas_van,2022-09-21,active
+DRV-002,Kevin Hernandez,gas_van,2024-01-14,inactive
+DRV-003,Debbie Haynes,electric_van,2024-03-08,active
+DRV-004,Shannon Cooper,electric_van,2022-08-13,active
+DRV-005,Timothy Moore,cargo_bike,2024-03-24,active
+DRV-006,Patricia Young MD,gas_van,2024-10-13,active
+DRV-007,Nicholas Reed,gas_van,2024-10-20,active
+DRV-008,Audrey Jackson,cargo_bike,2023-11-06,active
+DRV-009,Paul Goodwin,electric_van,2024-05-16,active
+DRV-010,Michael Wells,electric_van,2022-11-08,active
+DRV-011,Alexandra Ho,electric_truck,2024-01-17,active
+DRV-012,Tonya Vega,gas_van,2022-06-12,active
+DRV-013,Marcia Blanchard,electric_van,2023-12-23,active
+DRV-014,Shannon Rogers,gas_van,2023-05-02,active
+DRV-015,Matthew Myers,gas_truck,2025-04-25,on_leave
+DRV-016,Morgan Chapman,electric_van,2023-01-18,active
+DRV-017,Michael White,electric_van,2024-06-06,active
+DRV-018,Sandra Smith,cargo_bike,2022-09-01,active
+DRV-019,Jeremy Robinson,gas_van,2023-05-25,active
+DRV-020,Alexander Davis,gas_van,2025-12-18,active
+DRV-021,Sara Sampson,electric_van,2024-10-14,active
+DRV-022,Barbara Gates,gas_truck,2022-10-17,active
+DRV-023,Stephanie Knight,electric_van,2026-01-28,on_leave
+DRV-024,Melissa King,gas_van,2024-02-12,active
+DRV-025,Margaret Livingston,electric_van,2023-05-15,active
+DRV-026,Steven Carrillo,electric_truck,2023-07-21,active
+DRV-027,Benjamin Waters,gas_truck,2023-10-14,inactive
+DRV-028,Anthony Sosa,electric_van,2023-04-28,on_leave
+DRV-029,John Mcfarland,electric_truck,2024-09-04,inactive
+DRV-030,Johnathan Thomas,gas_van,2025-04-19,active
+DRV-031,Mason Gaines,gas_van,2025-02-01,on_leave
+DRV-032,Benjamin Duncan,electric_van,2023-04-08,inactive
+DRV-033,Steven Hernandez,electric_truck,2024-10-17,active
+DRV-034,Mary Adams,electric_truck,2025-01-10,active
+DRV-035,Laura Robertson,electric_van,2025-12-20,inactive
+DRV-036,Jeffrey Anthony DDS,gas_truck,2025-05-12,active
+DRV-037,April Finley,cargo_bike,2025-06-28,active
+DRV-038,Mr. Timothy Howard,electric_truck,2024-12-15,active
+DRV-039,Mark Benjamin,electric_van,2022-08-22,active
+DRV-040,Tonya Miller,gas_truck,2024-02-01,active
+DRV-041,Maria Thompson,electric_van,2022-06-10,active
+DRV-042,Connor Dominguez,electric_van,2025-10-18,inactive
+DRV-043,Heather Miller,gas_van,2024-10-06,active
+DRV-044,Brenda Lee,electric_van,2025-02-07,on_leave
+DRV-045,Katherine Brown,electric_van,2024-05-27,active
+DRV-046,Joseph Flowers,electric_truck,2024-01-17,active
+DRV-047,Amanda Brown PhD,gas_van,2022-06-15,active
+DRV-048,Robert Contreras,electric_truck,2024-01-30,active
+DRV-049,Shelly Hernandez,electric_van,2024-07-22,active
+DRV-050,Amanda Thomas,gas_van,2024-11-05,active

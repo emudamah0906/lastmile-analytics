@@ -1,0 +1,57 @@
+# GitHub Actions CI/CD Pipeline for dbt
+# ========================================
+# This runs automatically on every Pull Request to ensure:
+# 1. All dbt models compile and build successfully
+# 2. All data tests pass
+# 3. No breaking changes are introduced
+#
+# This is a KEY JD REQUIREMENT: "CI/CD pipelines for data"
+
+name: dbt CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  dbt-build:
+    name: dbt Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install dbt packages
+        run: dbt deps --profiles-dir .
+
+      - name: Generate seed data
+        run: python scripts/generate_data.py
+
+      - name: Run API extraction
+        run: python scripts/extract_api_data.py
+
+      - name: Load seeds into DuckDB
+        run: dbt seed --profiles-dir .
+
+      - name: Build all models
+        run: dbt run --profiles-dir .
+
+      - name: Run all tests
+        run: dbt test --profiles-dir .
+
+      - name: Generate docs
+        run: dbt docs generate --profiles-dir .
+
+      - name: Run dashboard verification
+        run: python scripts/dashboard.py

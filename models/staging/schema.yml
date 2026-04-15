@@ -1,0 +1,83 @@
+# schema.yml — Tests & Documentation for Staging Models
+# ======================================================
+# dbt data_tests validate your data automatically. Common built-in tests:
+#   - unique: no duplicate values in this column
+#   - not_null: no NULL values
+#   - accepted_values: column only contains specific values
+#   - relationships: foreign key integrity (value exists in another table)
+
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Cleaned orders — one row per ecommerce order"
+    columns:
+      - name: order_id
+        description: "Primary key"
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_tests:
+          - not_null
+      - name: warehouse_id
+        data_tests:
+          - not_null
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned']
+
+  - name: stg_deliveries
+    description: "Cleaned deliveries — one row per delivery attempt"
+    columns:
+      - name: delivery_id
+        description: "Primary key"
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        data_tests:
+          - not_null
+      - name: driver_id
+        data_tests:
+          - not_null
+      - name: delivery_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['in_transit', 'delivered', 'failed', 'returned_to_warehouse']
+
+  - name: stg_customers
+    description: "Cleaned customers — ecommerce brands on the platform"
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+      - name: email
+        data_tests:
+          - not_null
+
+  - name: stg_drivers
+    description: "Cleaned drivers with EV flag"
+    columns:
+      - name: driver_id
+        data_tests:
+          - unique
+          - not_null
+      - name: vehicle_type
+        data_tests:
+          - not_null
+
+  - name: stg_warehouses
+    description: "Cleaned warehouse / fulfillment center data"
+    columns:
+      - name: warehouse_id
+        data_tests:
+          - unique
+          - not_null
+      - name: capacity
+        data_tests:
+          - not_null

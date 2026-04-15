@@ -1,0 +1,92 @@
+/*
+    driver_efficiency.sql — Driver Efficiency Rankings
+    =====================================================
+    SKILLS DEMONSTRATED:
+    - RANK() and DENSE_RANK() window functions
+    - NTILE() for percentile bucketing
+    - Multiple aggregations in one query
+    - Filtering with HAVING clause
+
+    This answers: "Who are our best and worst performing drivers,
+    and how does EV performance compare to gas?"
+*/
+
+-- CTE 1: Calculate per-driver metrics
+with driver_metrics as (
+    select
+        dd.driver_id,
+        dd.driver_name,
+        dd.vehicle_type,
+        dd.vehicle_category,
+        dd.is_ev_driver,
+        dd.driver_tenure_days,
+
+        count(*)                                        as total_deliveries,
+        round(avg(f.delivery_duration_minutes), 1)      as avg_duration_min,
+        round(avg(f.distance_km), 1)                    as avg_distance_km,
+        round(sum(f.order_amount), 2)                   as total_revenue_delivered,
+
+        -- On-time percentage
+        round(100.0 * sum(case when f.is_on_time then 1 else 0 end)
+              / count(*), 1)                            as on_time_pct,
+
+        -- Failed delivery rate
+        round(100.0 * sum(case when f.delivery_status = 'failed' then 1 else 0 end)
+              / count(*), 1)                            as failure_rate_pct
+
+    from main.fact_deliveries f
+    join main.dim_drivers dd on f.driver_key = dd.driver_key
+    group by dd.driver_id, dd.driver_name, dd.vehicle_type,
+             dd.vehicle_category, dd.is_ev_driver, dd.driver_tenure_days
+    having count(*) >= 10  -- Only rank drivers with meaningful volume
+),
+
+-- CTE 2: Add rankings
+ranked_drivers as (
+    select
+        *,
+
+        -- RANK: drivers with same score get same rank, next rank is skipped
+        rank() over (order by on_time_pct desc)         as on_time_rank,
+
+        -- DENSE_RANK: same as RANK but no gaps in ranking numbers
+        dense_rank() over (order by total_deliveries desc) as volume_rank,
+
+        -- NTILE: divide drivers into 4 equal groups (quartiles)
+        ntile(4) over (order by on_time_pct desc)       as performance_quartile,
+
+        -- Rank within vehicle category
+        rank() over (
+            partition by vehicle_category
+            order by on_time_pct desc
+        ) as rank_within_category
+
+    from driver_metrics
+)
+
+select
+    driver_name,
+    vehicle_type,
+    case when is_ev_driver then 'EV' else 'Gas' end as fuel_type,
+    total_deliveries,
+    avg_duration_min,
+    avg_distance_km,
+    on_time_pct,
+    failure_rate_pct,
+    total_revenue_delivered,
+
+    -- Rankings
+    on_time_rank,
+    volume_rank,
+    rank_within_category,
+
+    -- Performance tier based on quartile
+    case performance_quartile
+        when 1 then 'Top 25%'
+        when 2 then 'Above Average'
+        when 3 then 'Below Average'
+        when 4 then 'Bottom 25%'
+    end as performance_tier
+
+from ranked_drivers
+order by on_time_rank

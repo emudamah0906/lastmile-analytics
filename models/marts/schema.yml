@@ -1,0 +1,87 @@
+# schema.yml — Tests & Documentation for Mart Models (Star Schema)
+# ==================================================================
+
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Customer dimension — ecommerce brands with derived segments"
+    columns:
+      - name: customer_key
+        description: "Surrogate key (hash-based)"
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_drivers
+    description: "Driver dimension — includes EV classification for sustainability reporting"
+    columns:
+      - name: driver_key
+        data_tests:
+          - unique
+          - not_null
+      - name: driver_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_warehouses
+    description: "Warehouse dimension — fulfillment centers with capacity tiers"
+    columns:
+      - name: warehouse_key
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_date
+    description: "Date dimension — every day from 2024-2026 with fiscal year, weekday flags"
+    columns:
+      - name: date_key
+        data_tests:
+          - unique
+          - not_null
+
+  - name: fact_deliveries
+    description: "Delivery fact table — grain is one row per delivery. Central table of the star schema."
+    columns:
+      - name: delivery_key
+        description: "Surrogate key for the fact row"
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_key
+        description: "FK to dim_customers"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_key
+      - name: driver_key
+        description: "FK to dim_drivers"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_drivers')
+                field: driver_key
+      - name: warehouse_key
+        description: "FK to dim_warehouses"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_warehouses')
+                field: warehouse_key
+      - name: date_key
+        description: "FK to dim_date"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key

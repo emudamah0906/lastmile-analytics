@@ -1,0 +1,9 @@
+warehouse_id,warehouse_name,city,province,capacity,opened_date
+WH-001,Mississauga Fulfillment Center 1,Mississauga,ON,500,2023-11-04
+WH-002,Brampton Fulfillment Center 2,Brampton,ON,500,2021-05-20
+WH-003,Hamilton Fulfillment Center 3,Hamilton,ON,2000,2022-05-20
+WH-004,Ottawa Fulfillment Center 4,Ottawa,ON,1000,2022-03-06
+WH-005,Montreal Fulfillment Center 5,Montreal,QC,1000,2024-03-24
+WH-006,Vancouver Fulfillment Center 6,Vancouver,BC,1000,2023-12-28
+WH-007,Calgary Fulfillment Center 7,Calgary,AB,500,2024-11-07
+WH-008,Toronto Fulfillment Center 8,Toronto,ON,500,2021-08-19
