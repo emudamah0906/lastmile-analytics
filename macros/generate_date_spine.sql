@@ -1,12 +1,8 @@
 /*
-    generate_date_spine.sql — Custom dbt Macro
-    ============================================
-    WHAT IS A MACRO?
-    Macros are reusable SQL snippets written in Jinja. Think of them as
-    functions in Python — they take inputs and generate SQL.
-
-    This macro generates a series of dates between two dates.
-    You can call it in any model: {{ generate_date_spine('2024-01-01', '2026-12-31') }}
+    generate_date_spine.sql
+    Reusable macro for producing a continuous date range.
+    I use this instead of dbt_utils.date_spine because DuckDB's
+    generate_series is simpler and avoids the adapter compatibility issues.
 */
 
 {% macro generate_date_spine(start_date, end_date) %}
@@ -22,10 +18,8 @@
 
 
 /*
-    cents_to_dollars — Simple utility macro
-    ========================================
-    Converts cents to dollars with 2 decimal places.
-    Usage: {{ cents_to_dollars('amount_cents') }}
+    cents_to_dollars
+    Utility for converting cent-denominated amounts to dollars.
 */
 
 {% macro cents_to_dollars(column_name) %}

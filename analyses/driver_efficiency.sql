@@ -1,17 +1,12 @@
 /*
-    driver_efficiency.sql — Driver Efficiency Rankings
-    =====================================================
-    SKILLS DEMONSTRATED:
-    - RANK() and DENSE_RANK() window functions
-    - NTILE() for percentile bucketing
-    - Multiple aggregations in one query
-    - Filtering with HAVING clause
-
-    This answers: "Who are our best and worst performing drivers,
-    and how does EV performance compare to gas?"
+    driver_efficiency.sql
+    Ranks drivers by on-time %, volume, and failure rate. I use NTILE
+    to bucket into performance quartiles so ops can quickly flag the
+    bottom 25% for coaching. The 10-delivery minimum filters out
+    drivers with too little data to rank meaningfully.
 */
 
--- CTE 1: Calculate per-driver metrics
+-- Per-driver aggregates
 with driver_metrics as (
     select
         dd.driver_id,
@@ -26,11 +21,11 @@ with driver_metrics as (
         round(avg(f.distance_km), 1)                    as avg_distance_km,
         round(sum(f.order_amount), 2)                   as total_revenue_delivered,
 
-        -- On-time percentage
+        -- Core KPIs
         round(100.0 * sum(case when f.is_on_time then 1 else 0 end)
               / count(*), 1)                            as on_time_pct,
 
-        -- Failed delivery rate
+        -- Failure rate (ops watches this closely)
         round(100.0 * sum(case when f.delivery_status = 'failed' then 1 else 0 end)
               / count(*), 1)                            as failure_rate_pct
 
@@ -38,24 +33,19 @@ with driver_metrics as (
     join main.dim_drivers dd on f.driver_key = dd.driver_key
     group by dd.driver_id, dd.driver_name, dd.vehicle_type,
              dd.vehicle_category, dd.is_ev_driver, dd.driver_tenure_days
-    having count(*) >= 10  -- Only rank drivers with meaningful volume
+    having count(*) >= 10  -- Filter out low-volume drivers
 ),
 
--- CTE 2: Add rankings
+-- Rankings and quartile bucketing
 ranked_drivers as (
     select
         *,
 
-        -- RANK: drivers with same score get same rank, next rank is skipped
         rank() over (order by on_time_pct desc)         as on_time_rank,
-
-        -- DENSE_RANK: same as RANK but no gaps in ranking numbers
         dense_rank() over (order by total_deliveries desc) as volume_rank,
-
-        -- NTILE: divide drivers into 4 equal groups (quartiles)
         ntile(4) over (order by on_time_pct desc)       as performance_quartile,
 
-        -- Rank within vehicle category
+        -- Per-category rank for EV vs gas comparisons
         rank() over (
             partition by vehicle_category
             order by on_time_pct desc

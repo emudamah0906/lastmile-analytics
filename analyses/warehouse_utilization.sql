@@ -1,17 +1,11 @@
 /*
-    warehouse_utilization.sql — Warehouse Capacity & Utilization
-    ==============================================================
-    SKILLS DEMONSTRATED:
-    - Subqueries and derived tables
-    - PARTITION BY for grouped window calculations
-    - Running totals with SUM() OVER (ORDER BY)
-    - COALESCE for handling NULLs
-
-    This answers: "How utilized are our warehouses, and what are
-    the monthly trends in order volume by fulfillment center?"
+    warehouse_utilization.sql
+    Tracks monthly order volume against each warehouse's stated capacity.
+    The utilization_alert column flags sites nearing capacity so the ops
+    team can plan expansion or rebalance routing.
 */
 
--- CTE 1: Monthly order volume per warehouse
+-- Monthly order volume per warehouse
 with monthly_warehouse_orders as (
     select
         dw.warehouse_id,
@@ -32,32 +26,32 @@ with monthly_warehouse_orders as (
              dw.capacity, dw.capacity_tier, date_trunc('month', f.order_date)
 ),
 
--- CTE 2: Add running totals and month-over-month comparisons
+-- Running totals and MoM comparisons
 warehouse_trends as (
     select
         *,
 
-        -- Running total of orders per warehouse (cumulative)
+        -- Cumulative orders
         sum(monthly_orders) over (
             partition by warehouse_id
             order by order_month
             rows unbounded preceding
         ) as cumulative_orders,
 
-        -- Previous month's orders (for MoM comparison)
+        -- Previous month for MoM calc
         lag(monthly_orders) over (
             partition by warehouse_id
             order by order_month
         ) as prev_month_orders,
 
-        -- 3-month moving average
+        -- Smoothed trend (3-month moving avg)
         round(avg(monthly_orders) over (
             partition by warehouse_id
             order by order_month
             rows between 2 preceding and current row
         ), 0) as orders_3m_moving_avg,
 
-        -- Utilization rate (orders as % of capacity)
+        -- Orders as % of stated capacity
         round(100.0 * monthly_orders / nullif(capacity, 0), 1) as utilization_pct
 
     from monthly_warehouse_orders

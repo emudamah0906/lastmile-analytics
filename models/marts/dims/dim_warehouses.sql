@@ -1,8 +1,7 @@
 /*
-    dim_warehouses.sql — Warehouse Dimension
-    ==========================================
-    Warehouses (fulfillment centers) are where orders are picked and shipped.
-    The capacity_tier helps with operational planning.
+    dim_warehouses.sql
+    Warehouse dimension with a capacity_tier bucket I added for
+    quick operational grouping in dashboards.
 */
 
 with warehouses as (
@@ -20,7 +19,7 @@ enriched as (
         capacity,
         opened_date,
 
-        -- Capacity tier for grouping in reports
+        -- Tier buckets for high-level capacity analysis
         case
             when capacity <= 500  then 'Small'
             when capacity <= 1000 then 'Medium'

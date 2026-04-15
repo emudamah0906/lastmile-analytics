@@ -1,17 +1,11 @@
 /*
-    delivery_performance.sql — Delivery Performance Analysis
-    ==========================================================
-    SKILLS DEMONSTRATED:
-    - CTEs (Common Table Expressions) for readable, modular queries
-    - Window functions: AVG() OVER, running averages
-    - CASE statements for conditional logic
-    - GROUP BY with multiple dimensions
-
-    This query answers: "How does delivery performance vary by warehouse,
-    vehicle type, and day of week?"
+    delivery_performance.sql
+    Breaks down delivery performance by warehouse, vehicle type, and day
+    of week. I use this to identify which city + vehicle combos are
+    underperforming relative to the fleet average.
 */
 
--- CTE 1: Base delivery metrics joined with dimensions
+-- Base delivery metrics joined with dimensions
 with delivery_metrics as (
     select
         f.delivery_duration_minutes,
@@ -37,7 +31,7 @@ with delivery_metrics as (
     join main.dim_date dt        on f.date_key      = dt.date_key
 ),
 
--- CTE 2: Performance by warehouse and vehicle type
+-- Aggregated by warehouse + vehicle type
 warehouse_vehicle_performance as (
     select
         warehouse_city,
@@ -51,7 +45,7 @@ warehouse_vehicle_performance as (
         round(100.0 * sum(case when is_on_time then 1 else 0 end)
               / count(*), 1)                            as on_time_pct,
 
-        -- Window function: compare each group to the overall average
+        -- Overall average for comparison
         round(avg(delivery_duration_minutes) over (), 1) as overall_avg_duration
 
     from delivery_metrics
@@ -59,7 +53,7 @@ warehouse_vehicle_performance as (
     group by warehouse_city, vehicle_category, is_ev_delivery
 ),
 
--- CTE 3: Day of week patterns
+-- Day-of-week breakdown (used in a separate report)
 day_of_week_patterns as (
     select
         day_name,

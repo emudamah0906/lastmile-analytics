@@ -1,7 +1,7 @@
 /*
-    stg_customers.sql — Staging model for customers
-    =================================================
-    Here we standardize city names using INITCAP (title case).
+    stg_customers.sql
+    Standardises email casing and city/province formatting so downstream
+    models don't have to worry about inconsistent raw data.
 */
 
 with source as (

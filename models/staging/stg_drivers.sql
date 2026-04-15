@@ -1,8 +1,7 @@
 /*
-    stg_drivers.sql — Staging model for drivers
-    =============================================
-    We add a boolean flag is_ev_driver — this reflects GoBolt's focus on
-    building North America's largest electric vehicle fleet.
+    stg_drivers.sql
+    I derive is_ev_driver at this layer so every downstream model can
+    slice by EV vs gas without re-implementing the logic.
 */
 
 with source as (
@@ -14,7 +13,7 @@ cleaned as (
         driver_id,
         driver_name,
         vehicle_type,
-        -- Derived boolean: is this an electric vehicle?
+        -- EV flag used heavily in sustainability reporting
         case
             when vehicle_type like 'electric%' then true
             else false

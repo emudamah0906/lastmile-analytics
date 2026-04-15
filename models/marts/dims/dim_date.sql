@@ -1,13 +1,9 @@
 /*
-    dim_date.sql — Date Dimension
-    ===============================
-    EVERY star schema needs a date dimension. It lets you:
-    - Group by day, week, month, quarter, year
-    - Filter by weekday vs weekend
-    - Compare year-over-year performance
-
-    This generates a row for every day in a date range using
-    DuckDB's generate_series function.
+    dim_date.sql
+    Date dimension generated via DuckDB's generate_series. I chose
+    a natural key (date_day itself) since dates are already unique
+    and readable -- no need for a surrogate here.
+    Fiscal year starts in April to match Canadian government FY.
 */
 
 with date_spine as (
@@ -21,11 +17,11 @@ with date_spine as (
 
 enriched as (
     select
-        -- The date itself is the key (natural key — no surrogate needed for dates)
+        -- Natural key
         date_day                                    as date_key,
         date_day,
 
-        -- Date parts
+        -- Standard date parts
         extract(year from date_day)                 as year,
         extract(month from date_day)                as month,
         extract(day from date_day)                  as day_of_month,
@@ -33,18 +29,18 @@ enriched as (
         extract(quarter from date_day)              as quarter,
         extract(week from date_day)                 as week_of_year,
 
-        -- Formatted strings for BI tools
+        -- Pre-formatted strings for BI tools
         strftime(date_day, '%B')                    as month_name,
         strftime(date_day, '%A')                    as day_name,
         strftime(date_day, '%Y-%m')                 as year_month,
 
-        -- Boolean flags
+        -- Weekend flag for weekday vs weekend analysis
         case
             when extract(dow from date_day) in (0, 6) then true
             else false
         end as is_weekend,
 
-        -- Fiscal year (assuming April start — common in Canada)
+        -- Fiscal year (April start, Canadian FY)
         case
             when extract(month from date_day) >= 4
             then extract(year from date_day)

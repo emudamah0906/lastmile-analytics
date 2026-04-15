@@ -1,14 +1,8 @@
 /*
-    int_orders_deliveries_joined.sql — Intermediate Model
-    ======================================================
-    WHAT IS AN INTERMEDIATE MODEL?
-    Intermediate models sit between staging and marts. They:
-    - Join related staging tables together
-    - Apply business logic
-    - Are materialized as EPHEMERAL (not stored as tables, inlined as CTEs)
-
-    This model joins orders with their deliveries to create a unified view
-    of the "Order Lifecycle" — a key concept in logistics data modeling.
+    int_orders_deliveries_joined.sql
+    Joins orders to their delivery events and derives is_on_time.
+    I keep this as an ephemeral intermediate model so the fact table
+    doesn't have to carry all the join + business-logic complexity.
 */
 
 with orders as (
@@ -39,13 +33,13 @@ joined as (
         o.order_amount,
         o.item_count,
 
-        -- Derived: was this delivery on time? (under 60 minutes = on time)
+        -- Business rule: <= 60 min = on time (agreed threshold with ops team)
         case
             when d.delivery_duration_minutes <= 60 then true
             else false
         end as is_on_time,
 
-        -- Date key for joining to dim_date
+        -- Truncated to date for dim_date join
         cast(d.delivery_time as date) as delivery_date
 
     from deliveries d

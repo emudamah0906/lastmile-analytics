@@ -1,119 +1,93 @@
-# LastMile Analytics — dbt + DuckDB Data Warehouse
+# LastMile Analytics
 
-A production-grade analytics engineering project that models a **last-mile delivery company's** data warehouse using **dbt**, **DuckDB**, **Python**, and **Kimball dimensional modeling**.
+A data warehouse I built to model last-mile delivery operations using **dbt**, **DuckDB**, and **Kimball dimensional modeling**. The project covers the full analytics engineering lifecycle: synthetic data generation, staging/transformation layers, a star schema, automated testing, and CI/CD.
 
 ## Architecture
 
 ```
-                         ┌─────────────────┐
-                         │   dim_date      │
-                         │ (date, fiscal   │
-                         │  year, weekend) │
-                         └────────┬────────┘
-                                  │
-┌─────────────────┐    ┌──────────┴──────────┐    ┌─────────────────┐
-│  dim_customers  │────│   fact_deliveries   │────│   dim_drivers   │
-│ (segment, city, │    │ (duration, distance,│    │ (EV flag, type, │
-│  tenure)        │    │  amount, on_time)   │    │  tenure)        │
-└─────────────────┘    └──────────┬──────────┘    └─────────────────┘
-                                  │
-                         ┌────────┴────────┐
-                         │ dim_warehouses  │
-                         │ (city, capacity │
-                         │  tier)          │
-                         └─────────────────┘
+                         +------------------+
+                         |    dim_date      |
+                         | (date, fiscal    |
+                         |  year, weekend)  |
+                         +--------+---------+
+                                  |
++------------------+    +---------+----------+    +------------------+
+|  dim_customers   |----| fact_deliveries    |----|   dim_drivers    |
+| (segment, city,  |    | (duration, dist,   |    | (EV flag, type,  |
+|  tenure)         |    |  amount, on_time)  |    |  tenure)         |
++------------------+    +---------+----------+    +------------------+
+                                  |
+                         +--------+---------+
+                         | dim_warehouses   |
+                         | (city, capacity  |
+                         |  tier)           |
+                         +------------------+
 ```
+
+## Why I Built This
+
+I wanted a project that demonstrates the kind of work I do as an analytics engineer -- not just SQL, but the full stack: data generation, transformation layers, testing, and CI. I modeled it around last-mile logistics because the domain has interesting data relationships (orders, deliveries, drivers, warehouses) and real operational KPIs like on-time rate and EV fleet adoption.
 
 ## Tech Stack
 
-| Tool | Purpose |
-|------|---------|
-| **dbt** | Data transformation (ELT), testing, documentation |
-| **DuckDB** | Local analytical database (warehouse) |
-| **Python** | Data generation, API extraction, analytics |
-| **Pandas** | Data manipulation and export |
-| **Faker** | Realistic fake data generation |
-| **GitHub Actions** | CI/CD pipeline for data quality |
+| Tool | Why I chose it |
+|------|---------------|
+| **dbt** | Industry-standard transformation framework; I wanted to show staging/intermediate/mart layering |
+| **DuckDB** | Runs locally with zero infrastructure -- great for a portfolio project that anyone can clone and run |
+| **Python** | Data generation (Faker), API extraction simulation, CLI dashboard |
+| **GitHub Actions** | Automated CI that runs `dbt build` on every PR |
 
 ## Project Structure
 
 ```
 lastmile-analytics/
 ├── models/
-│   ├── staging/          # 1:1 with raw tables, clean & rename
-│   ├── intermediate/     # Join & enrich (ephemeral)
+│   ├── staging/          # 1:1 with raw tables, clean & type-cast
+│   ├── intermediate/     # Join orders + deliveries (ephemeral)
 │   └── marts/            # Star schema (dims + facts)
-├── seeds/                # Raw CSV data
-├── scripts/              # Python: data gen, API extract, dashboard
-├── analyses/             # Advanced SQL analytics
-├── macros/               # Reusable SQL functions
+├── seeds/                # Raw CSV data (generated)
+├── scripts/              # Data gen, API extraction, dashboard
+├── analyses/             # Ad-hoc analytical queries
+├── macros/               # Reusable SQL (date spine, currency)
 ├── tests/                # Custom data quality tests
-└── .github/workflows/    # CI/CD pipeline
+└── .github/workflows/    # CI pipeline
 ```
 
-## Key Features
+## Key Design Decisions
 
-- **Kimball Star Schema**: Fact table with 4 dimension tables
-- **Incremental Models**: fact_deliveries uses incremental loading
-- **43 Automated Tests**: uniqueness, not-null, relationships, custom data quality
-- **Custom Macros**: Reusable SQL (date spine, currency conversion)
-- **CI/CD Pipeline**: GitHub Actions runs `dbt build` on every PR
-- **Python Data Engineering**: Faker-based generation + API extraction patterns
-- **Sustainability Tracking**: EV vs gas vehicle performance metrics
+- **Incremental fact table**: `fact_deliveries` is incremental because in production, delivery tables grow fast and full rebuilds are wasteful.
+- **Ephemeral intermediate layer**: `int_orders_deliveries_joined` is ephemeral so it doesn't materialize a redundant table -- it just inlines as a CTE in the fact model.
+- **Surrogate keys via dbt_utils**: Hash-based surrogate keys decouple the warehouse from source system IDs.
+- **EV flag in staging**: I derive `is_ev_driver` at the staging layer so every downstream model can slice by it without re-implementing the logic.
+- **Canadian fiscal year**: The date dimension uses an April-start fiscal year to match Canadian government FY conventions.
 
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
-
-# 2. Install dbt packages
 dbt deps --profiles-dir .
 
-# 3. Generate fake logistics data
+# Generate data and build the warehouse
 python scripts/generate_data.py
 python scripts/extract_api_data.py
+dbt seed --profiles-dir .
+dbt run --profiles-dir .
+dbt test --profiles-dir .
 
-# 4. Build the data warehouse
-dbt seed --profiles-dir .     # Load CSVs
-dbt run --profiles-dir .      # Build models
-dbt test --profiles-dir .     # Run 43 tests
-
-# 5. Explore
+# Explore
 dbt docs generate --profiles-dir .
-dbt docs serve --profiles-dir .   # Opens interactive docs
+dbt docs serve --profiles-dir .
 
-# 6. Run analytics dashboard
+# Run the CLI dashboard
 python scripts/dashboard.py
 ```
 
-## dbt Layers
+## Analytical Queries
 
-| Layer | Materialization | Purpose |
-|-------|----------------|---------|
-| **Staging** | View | Clean raw data: rename, cast, filter nulls |
-| **Intermediate** | Ephemeral | Join orders + deliveries, apply business logic |
-| **Marts (Dims)** | Table | Customer, driver, warehouse, date dimensions |
-| **Marts (Facts)** | Incremental | Delivery fact table — core of the star schema |
+The `analyses/` folder contains queries I wrote to explore the data:
 
-## Analytics Queries
-
-The `analyses/` folder contains advanced SQL demonstrating:
-
-- **Window Functions**: Running averages, LAG/LEAD, RANK, NTILE
-- **CTEs**: Multi-step analytical queries
-- **Cohort Analysis**: Customer retention by signup month
-- **Performance Rankings**: Driver efficiency with DENSE_RANK
-
-## Skills Demonstrated
-
-This project covers the following analytics engineering competencies:
-
-- dbt (models, tests, macros, packages, incremental, docs)
-- Kimball Dimensional Modeling (star schema, fact/dim tables)
-- Advanced SQL (CTEs, window functions, partitioning)
-- Python (Pandas, Faker, REST API patterns)
-- CI/CD for data pipelines (GitHub Actions)
-- Data quality testing and monitoring
-- Git version control
-- Logistics domain (last-mile delivery, EV fleet, warehouse operations)
+- **delivery_performance.sql** -- Performance by warehouse, vehicle type, and day of week
+- **customer_cohort_analysis.sql** -- Retention and revenue trends by signup cohort
+- **driver_efficiency.sql** -- Driver rankings with quartile bucketing
+- **warehouse_utilization.sql** -- Capacity tracking with MoM growth and utilization alerts

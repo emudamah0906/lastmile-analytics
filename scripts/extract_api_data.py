@@ -1,20 +1,10 @@
 """
 LastMile Analytics — API Data Extractor (Simulated)
 =====================================================
-This script simulates extracting data from a REST API.
-
-In real-world analytics engineering, you often need to pull data from:
-- Internal APIs (order management, warehouse systems)
-- Third-party APIs (weather data, traffic data, shipping carriers)
-
-WHAT YOU'LL LEARN:
-- How to interact with REST APIs using Python's requests library
-- Pagination handling (APIs return data in pages)
-- Error handling and retries
-- Saving API responses as structured data
-
-NOTE: This uses a simulated API (json data) since we don't have a real API.
-The patterns shown here are the SAME ones you'd use with real APIs.
+I built this to demonstrate how I'd pull zone-performance data from a
+paginated REST API in a real pipeline. The API is simulated here, but
+the pagination loop, response parsing, and output format are identical
+to what I'd use against a live endpoint.
 """
 
 import json
@@ -23,28 +13,12 @@ from datetime import datetime, timedelta
 import random
 import time
 
-# Simulated API responses (in practice, you'd use the `requests` library)
-# Example of what a real API call looks like:
-#
-#   import requests
-#   response = requests.get(
-#       "https://api.gobolt.com/v1/deliveries",
-#       headers={"Authorization": "Bearer YOUR_API_KEY"},
-#       params={"page": 1, "per_page": 100}
-#   )
-#   data = response.json()
+# In production I'd swap simulate_api_response() for requests.get() calls
+# against the real endpoint. Everything else stays the same.
 
 
 def simulate_api_response(endpoint: str, page: int, per_page: int = 50) -> dict:
-    """
-    Simulate an API response with pagination.
-
-    Real APIs return data like this:
-    {
-        "data": [...],
-        "meta": {"page": 1, "per_page": 50, "total_pages": 10, "total_records": 500}
-    }
-    """
+    """Return a fake paginated API response with zone-performance records."""
     random.seed(42 + page)
     total_records = 200
     total_pages = (total_records + per_page - 1) // per_page
@@ -81,27 +55,14 @@ def simulate_api_response(endpoint: str, page: int, per_page: int = 50) -> dict:
 
 
 def extract_with_pagination(endpoint: str, per_page: int = 50) -> list:
-    """
-    Extract all records from a paginated API.
-
-    This is a COMMON PATTERN in data engineering:
-    1. Call page 1
-    2. Check how many total pages exist
-    3. Loop through remaining pages
-    4. Combine all results
-
-    In production, you'd add:
-    - Rate limiting (time.sleep between calls)
-    - Retry logic for failed requests
-    - Error handling for timeouts
-    """
+    """Walk through every page of a paginated endpoint and return all records."""
     all_records = []
     page = 1
 
     print(f"  Extracting from {endpoint}...")
 
     while True:
-        # Simulate network delay (real APIs have latency)
+        # Simulated latency
         time.sleep(0.1)
 
         response = simulate_api_response(endpoint, page, per_page)

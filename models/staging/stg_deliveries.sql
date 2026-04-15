@@ -1,8 +1,8 @@
 /*
-    stg_deliveries.sql — Staging model for deliveries
-    ===================================================
-    Notice how we compute delivery_duration_minutes from timestamps.
-    This is a DERIVED COLUMN — calculated from existing data.
+    stg_deliveries.sql
+    Type-casts and cleans raw delivery records. delivery_duration_minutes
+    comes pre-calculated from the source, so I just cast it here rather
+    than re-deriving it from timestamps.
 */
 
 with source as (
@@ -19,7 +19,7 @@ cleaned as (
         delivery_status,
         cast(distance_km as decimal(10,1)) as distance_km,
 
-        -- Calculate delivery duration in minutes from timestamps
+        -- Duration already exists in source; just cast it
         cast(delivery_duration_minutes as integer) as delivery_duration_minutes
 
     from source

@@ -1,14 +1,8 @@
 /*
-    stg_orders.sql — Staging model for orders
-    ==========================================
-    WHAT IS A STAGING MODEL?
-    Staging models are the first transformation layer. They:
-    1. Rename columns to consistent naming conventions
-    2. Cast data types (strings to dates, etc.)
-    3. Filter out bad/null records
-    4. Do NOT join tables or add business logic — that comes later
-
-    The source() function references tables defined in sources.yml
+    stg_orders.sql
+    Cleans and type-casts raw order data. No joins or business logic here --
+    I keep staging models as thin 1:1 mirrors of each source table so
+    downstream changes are easy to trace.
 */
 
 with source as (

@@ -1,13 +1,9 @@
 """
-LastMile Analytics — Fake Data Generator
-=========================================
-This script generates realistic logistics data for a last-mile delivery company.
-
-WHAT YOU'LL LEARN:
-- Using Faker library to generate realistic fake data
-- Using Pandas DataFrames to structure and export data
-- Data modeling concepts: how tables relate to each other via foreign keys
-- Python best practices: functions, type hints, reproducible random seeds
+LastMile Analytics — Data Generator
+====================================
+I wrote this script to bootstrap realistic logistics data for the project.
+Faker + Pandas made it easy to produce interrelated tables with proper foreign
+keys so the dbt models have something meaningful to transform.
 """
 
 import pandas as pd
@@ -15,8 +11,8 @@ from faker import Faker
 import random
 from datetime import datetime, timedelta
 
-# Set seed for reproducibility — same data every time you run this
-fake = Faker("en_CA")  # Canadian locale (GoBolt is Toronto-based)
+# Seeded for reproducibility so dbt tests stay deterministic across runs
+fake = Faker("en_CA")  # Canadian locale to match GoBolt's operating geography
 Faker.seed(42)
 random.seed(42)
 
@@ -46,7 +42,7 @@ DRIVER_STATUSES = ["active", "inactive", "on_leave"]
 
 
 def generate_warehouses() -> pd.DataFrame:
-    """Generate warehouse data — these are the fulfillment centers."""
+    """Generate warehouse / fulfillment center records."""
     warehouses = []
     for i in range(1, NUM_WAREHOUSES + 1):
         city, province = CITIES[i % len(CITIES)]
@@ -62,7 +58,7 @@ def generate_warehouses() -> pd.DataFrame:
 
 
 def generate_customers() -> pd.DataFrame:
-    """Generate customer data — the ecommerce brands using our logistics."""
+    """Generate customer records representing ecommerce brands."""
     customers = []
     for i in range(1, NUM_CUSTOMERS + 1):
         city, province = random.choice(CITIES)
@@ -78,10 +74,10 @@ def generate_customers() -> pd.DataFrame:
 
 
 def generate_drivers() -> pd.DataFrame:
-    """Generate driver data — includes EV vs gas vehicles (GoBolt's EV fleet focus)."""
+    """Generate driver records with vehicle assignments."""
     drivers = []
     for i in range(1, NUM_DRIVERS + 1):
-        # 60% chance of EV — reflects GoBolt's push toward electric fleet
+        # Weighted toward EVs to mirror GoBolt's real fleet mix
         vehicle = random.choices(
             VEHICLE_TYPES,
             weights=[30, 15, 10, 5, 10],  # Heavy weight toward EVs
@@ -102,12 +98,7 @@ def generate_drivers() -> pd.DataFrame:
 
 
 def generate_orders(customers: pd.DataFrame, warehouses: pd.DataFrame) -> pd.DataFrame:
-    """
-    Generate order data — these represent ecommerce orders flowing through our system.
-
-    Notice how orders reference customer_id and warehouse_id — these are FOREIGN KEYS,
-    which create relationships between tables. This is fundamental to data modeling.
-    """
+    """Generate order records linked to customers and warehouses via foreign keys."""
     orders = []
     customer_ids = customers["customer_id"].tolist()
     warehouse_ids = warehouses["warehouse_id"].tolist()
@@ -131,12 +122,7 @@ def generate_orders(customers: pd.DataFrame, warehouses: pd.DataFrame) -> pd.Dat
 
 
 def generate_deliveries(orders: pd.DataFrame, drivers: pd.DataFrame) -> pd.DataFrame:
-    """
-    Generate delivery data — the actual last-mile delivery events.
-
-    Key concept: Not all orders become deliveries (some are cancelled).
-    We only create deliveries for orders that were shipped/delivered.
-    """
+    """Generate delivery events. Only eligible (shipped/delivered/returned) orders get a delivery row."""
     deliveries = []
     driver_ids = drivers["driver_id"].tolist()
 
@@ -194,7 +180,7 @@ def main():
     print("Generating deliveries...")
     deliveries = generate_deliveries(orders, drivers)
 
-    # Save to seeds/ directory (dbt will load these)
+    # Output to seeds/ so dbt seed picks them up directly
     output_dir = "seeds"
     datasets = {
         "raw_warehouses": warehouses,

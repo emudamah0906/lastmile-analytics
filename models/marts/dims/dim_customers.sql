@@ -1,15 +1,8 @@
 /*
-    dim_customers.sql — Customer Dimension
-    ========================================
-    WHAT IS A DIMENSION TABLE?
-    Dimension tables contain DESCRIPTIVE attributes — the "who, what, where"
-    of your data. They answer questions like:
-    - Who is this customer?
-    - Where are they located?
-    - How long have they been with us?
-
-    Dimensions are typically WIDE (many columns) and SHORT (fewer rows).
-    They are joined to fact tables via foreign keys.
+    dim_customers.sql
+    Customer dimension with surrogate key, tenure, and segment.
+    I chose to derive customer_segment here so the dashboard and
+    any BI tool can filter by segment without re-calculating it.
 */
 
 with customers as (
@@ -18,7 +11,7 @@ with customers as (
 
 enriched as (
     select
-        -- Surrogate key: a hash-based unique ID (best practice in dimensional modeling)
+        -- Surrogate key (hash-based)
         {{ dbt_utils.generate_surrogate_key(['customer_id']) }} as customer_key,
 
         customer_id,
@@ -28,7 +21,7 @@ enriched as (
         province,
         signup_date,
 
-        -- Derived fields: add business context
+        -- Tenure and segment for self-service analytics
         current_date - signup_date as customer_tenure_days,
 
         case

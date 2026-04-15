@@ -1,23 +1,9 @@
 /*
-    fact_deliveries.sql — Delivery Fact Table (INCREMENTAL)
-    ========================================================
-    WHAT IS AN INCREMENTAL MODEL?
-    Instead of rebuilding the entire table every run, incremental models
-    only process NEW or CHANGED rows. This is critical for:
-    - Large datasets (billions of rows) — saves compute cost
-    - Near-real-time pipelines — faster refresh times
-
-    HOW IT WORKS:
-    1. First run: builds the full table (like a regular table model)
-    2. Subsequent runs: only inserts rows where delivery_time > max existing
-    3. The is_incremental() macro returns false on first run, true after
-
-    Star Schema Layout:
-                    dim_date
-                       |
-    dim_customers -- FACT_DELIVERIES -- dim_drivers
-                       |
-                  dim_warehouses
+    fact_deliveries.sql — Incremental delivery fact table
+    I made this incremental because in production the deliveries table
+    grows fast and full rebuilds would be wasteful. On first run it
+    builds the full table; after that it only picks up new rows by
+    delivery_time.
 */
 
 {{
@@ -30,13 +16,13 @@
 with deliveries as (
     select * from {{ ref('int_orders_deliveries_joined') }}
 
-    -- INCREMENTAL FILTER: only get new deliveries since last run
+    -- Only pick up rows newer than the last run
     {% if is_incremental() %}
     where delivery_time > (select max(delivery_time) from {{ this }})
     {% endif %}
 ),
 
--- Look up dimension keys
+-- Dimension key lookups
 dim_customers as (
     select customer_key, customer_id from {{ ref('dim_customers') }}
 ),
@@ -51,34 +37,34 @@ dim_warehouses as (
 
 fact as (
     select
-        -- Surrogate key for the fact row
+        -- Surrogate key
         {{ dbt_utils.generate_surrogate_key(['del.delivery_id']) }} as delivery_key,
 
-        -- Foreign keys to dimensions (this is what makes it a STAR schema)
+        -- Dimension foreign keys
         dc.customer_key,
         dd.driver_key,
         dw.warehouse_key,
         del.delivery_date                       as date_key,
 
-        -- Degenerate dimensions (IDs kept for drill-down)
+        -- Degenerate dimensions (kept for drill-down)
         del.delivery_id,
         del.order_id,
 
-        -- Measures (the numbers you'll aggregate in reports)
+        -- Measures
         del.delivery_duration_minutes,
         del.distance_km,
         del.order_amount,
         del.item_count,
 
-        -- Boolean measures
+        -- Flags
         del.is_on_time,
         dd.is_ev_driver                         as is_ev_delivery,
 
-        -- Status
+        -- Statuses
         del.delivery_status,
         del.order_status,
 
-        -- Timestamps for detailed analysis
+        -- Raw timestamps for drill-down
         del.order_date,
         del.pickup_time,
         del.delivery_time

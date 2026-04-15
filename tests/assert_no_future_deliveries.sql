@@ -1,8 +1,7 @@
 /*
-    assert_no_future_deliveries.sql — Data Quality Test
-    =====================================================
-    Ensures no delivery has a timestamp too far in the future.
-    We allow a 7-day buffer for scheduled/planned deliveries.
+    assert_no_future_deliveries.sql
+    Flags deliveries timestamped more than 7 days into the future.
+    The 7-day buffer accounts for pre-scheduled routes.
 */
 
 select

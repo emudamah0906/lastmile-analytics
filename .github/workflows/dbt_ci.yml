@@ -1,11 +1,6 @@
-# GitHub Actions CI/CD Pipeline for dbt
-# ========================================
-# This runs automatically on every Pull Request to ensure:
-# 1. All dbt models compile and build successfully
-# 2. All data tests pass
-# 3. No breaking changes are introduced
-#
-# This is a KEY JD REQUIREMENT: "CI/CD pipelines for data"
+# CI pipeline for dbt -- runs on every PR and push to main.
+# Generates seed data, builds all models, runs tests, and
+# verifies the dashboard script against the built warehouse.
 
 name: dbt CI
 

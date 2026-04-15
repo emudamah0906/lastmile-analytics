@@ -1,5 +1,6 @@
 /*
-    stg_warehouses.sql — Staging model for warehouses
+    stg_warehouses.sql
+    Cleans and type-casts raw warehouse data.
 */
 
 with source as (

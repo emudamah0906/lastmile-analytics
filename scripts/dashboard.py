@@ -1,17 +1,10 @@
 """
 LastMile Analytics — Dashboard Script
 =======================================
-This script connects to the DuckDB warehouse and runs analytical queries
-against the star schema to produce a summary report.
-
-WHAT YOU'LL LEARN:
-- Connecting Python to DuckDB
-- Running SQL queries from Python
-- Using Pandas to format and display results
-- Building simple text-based reports
-
-In production, you'd replace this with a BI tool (Looker, Metabase)
-or build a Streamlit/Dash dashboard.
+Quick CLI dashboard that queries the star schema in DuckDB and prints
+KPIs, trends, and breakdowns. I use this for sanity-checking the
+warehouse after a dbt run; in production I'd point Metabase or Looker
+at the same tables.
 """
 
 import duckdb

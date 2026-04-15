@@ -1,17 +1,11 @@
 /*
-    customer_cohort_analysis.sql — Customer Cohort Analysis
-    =========================================================
-    SKILLS DEMONSTRATED:
-    - DATE_TRUNC for grouping by month
-    - Window functions: ROW_NUMBER, LAG
-    - Self-joins for cohort comparisons
-    - CTEs for step-by-step logic
-
-    This answers: "How do customers who signed up in the same month
-    compare in terms of order volume and value over time?"
+    customer_cohort_analysis.sql
+    Groups customers by signup month and tracks their delivery activity
+    over time. I built this to measure retention and revenue-per-customer
+    trends across cohorts.
 */
 
--- CTE 1: Assign each customer to their signup cohort (month)
+-- Assign each customer to their signup cohort
 with customer_cohorts as (
     select
         dc.customer_id,
@@ -23,7 +17,7 @@ with customer_cohorts as (
     from main.dim_customers dc
 ),
 
--- CTE 2: Get each customer's delivery activity by month
+-- Monthly delivery activity per customer
 customer_monthly_activity as (
     select
         f.customer_key,
@@ -38,12 +32,12 @@ customer_monthly_activity as (
     group by f.customer_key, dc.customer_id, date_trunc('month', f.delivery_time)
 ),
 
--- CTE 3: Join cohort info with activity
+-- Merge cohort assignment with monthly activity
 cohort_activity as (
     select
         cc.cohort_month,
         cma.activity_month,
-        -- Calculate months since signup (cohort age)
+        -- Cohort age in months
         date_diff('month', cc.cohort_month, cma.activity_month) as months_since_signup,
         count(distinct cc.customer_id)           as active_customers,
         sum(cma.delivery_count)                  as total_deliveries,
@@ -56,7 +50,7 @@ cohort_activity as (
     group by cc.cohort_month, cma.activity_month
 ),
 
--- CTE 4: Add retention metrics using LAG window function
+-- Add month-over-month retention via LAG
 cohort_with_retention as (
     select
         cohort_month,
@@ -66,13 +60,13 @@ cohort_with_retention as (
         total_deliveries,
         total_revenue,
 
-        -- LAG: compare to previous month's active customers
+        -- Previous month's count for retention calc
         lag(active_customers) over (
             partition by cohort_month
             order by activity_month
         ) as prev_month_active_customers,
 
-        -- Revenue per active customer
+        -- Revenue per active customer (key retention health metric)
         round(total_revenue / nullif(active_customers, 0), 2) as revenue_per_customer
 
     from cohort_activity
