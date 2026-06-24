@@ -33,7 +33,7 @@ I wanted a project that demonstrates the kind of work I do as an analytics engin
 | Tool | Why I chose it |
 |------|---------------|
 | **dbt** | Industry-standard transformation framework; I wanted to show staging/intermediate/mart layering |
-| **DuckDB** | Runs locally with zero infrastructure -- great for a portfolio project that anyone can clone and run |
+| **DuckDB** | Runs locally with zero infrastructure, so anyone can clone and run it without cloud setup |
 | **Python** | Data generation (Faker), API extraction simulation, CLI dashboard |
 | **GitHub Actions** | Automated CI that runs `dbt build` on every PR |
 
